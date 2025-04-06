@@ -44,7 +44,11 @@
     "downloading_metadata": "Descargando metadatos de {{title}}…",
     "downloading": "Descargando {{title}}… ({{percentage}} completado) - Finalizando {{eta}} - {{speed}}",
     "calculating_eta": "Descargando {{title}}… ({{percentage}} completado) - Calculando tiempo restante…",
-    "checking_files": "Verificando archivos de {{title}}… ({{percentage}} completado)"
+    "checking_files": "Verificando archivos de {{title}}… ({{percentage}} completado)",
+    "downloading_metadata": "Descargando metadata de {{title}}…",
+    "installation_complete": "Instalación completada",
+    "installation_complete_message": "Common redistributables instalados exitosamente",
+    "installing_common_redist": "{{log}}…"
   },
   "catalogue": {
     "search": "Filtrar…",
@@ -59,6 +63,7 @@
   },
   "game_details": {
     "open_download_options": "Ver opciones de descargas",
+    "automatically_extract_downloaded_files": "Extraer automáticamente archivos descargados",
     "download_options_zero": "No hay opciones de descargas disponibles",
     "download_options_one": "{{count}} opción de descarga",
     "download_options_other": "{{count}} opciones de descargas",
@@ -230,10 +235,18 @@
     "seeding": "Seeding",
     "stop_seeding": "Detener seeding",
     "resume_seeding": "Continuar seeding",
+    "extract": "Extraer archivos",
+    "extracting": "Extrayendo archivos…",
     "options": "Gestionar"
   },
   "settings": {
     "downloads_path": "Ruta de descarga",
+    "common_redist": "Common redistributables",
+    "common_redist_description": "Los Common redistributables son necesarios para ejecutar algunos juegos. instalarlo es recomendado para evitar problemas.",
+    "create_real_debrid_account": "Presiona acá si no tienes una cuenta de Real-Debrid aún",
+    "create_torbox_account": "Presiona acá si no tienes una cuenta de Torbox aún",
+    "install_common_redist": "Instalar",
+    "installing_common_redist": "Instalando…",
     "change": "Cambiar",
     "notifications": "Notificaciones",
     "enable_download_notifications": "Cuando se completa una descarga",
@@ -346,6 +359,8 @@
   },
   "notifications": {
     "download_complete": "Descarga completada",
+    "extraction_complete": "Extracción completada",
+    "game_extracted": "{{title}} extraído exitosamente",
     "game_ready_to_install": "{{title}} está listo para instalarse",
     "repack_list_updated": "Lista de repacks actualizadas",
     "repack_count_one": "{{count}} repack ha sido añadido",
