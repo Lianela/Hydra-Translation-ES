@@ -98,7 +98,7 @@
     "genres": "Géneros",
     "tags": "Etiquetas",
     "publishers": "Editores",
-    "download_sources": "Descargando fuentes",
+    "download_sources": "Fuentes de Descargas",
     "result_count": "{{resultCount}} resultados",
     "filter_count": "{{filterCount}} disponible",
     "clear_filters": "Limpiar {{filterCount}} seleccionados"
