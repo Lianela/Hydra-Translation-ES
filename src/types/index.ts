@@ -10,6 +10,11 @@ export type HydraCloudFeature =
   | "backup"
   | "achievements-points";
 
+export interface DiskUsage {
+  free: number;
+  total: number;
+}
+
 export interface GameRepack {
   id: number;
   title: string;
@@ -30,7 +35,7 @@ export interface DownloadSource {
   status: DownloadSourceStatus;
   objectIds: string[];
   downloadCount: number;
-  fingerprint: string;
+  fingerprint?: string;
   etag: string | null;
   createdAt: Date;
   updatedAt: Date;
@@ -45,7 +50,7 @@ export interface ShopAssets {
   libraryImageUrl: string;
   logoImageUrl: string;
   logoPosition: string | null;
-  coverImageUrl: string;
+  coverImageUrl: string | null;
 }
 
 export type ShopDetails = SteamAppDetails & {
@@ -182,6 +187,7 @@ export interface UserDetails {
   bio: string;
   featurebaseJwt: string;
   subscription: Subscription | null;
+  karma: number;
   quirks?: {
     backupsPerGameLimit: number;
   };
@@ -202,6 +208,7 @@ export interface UserProfile {
   currentGame: UserProfileCurrentGame | null;
   bio: string;
   hasActiveSubscription: boolean;
+  karma: number;
   quirks: {
     backupsPerGameLimit: number;
   };
@@ -233,7 +240,26 @@ export interface DownloadSourceValidationResult {
 export interface GameStats {
   downloadCount: number;
   playerCount: number;
-  assets: ShopAssets | null;
+  averageScore: number | null;
+  reviewCount: number;
+}
+
+export interface GameReview {
+  id: string;
+  reviewHtml: string;
+  score: number;
+  createdAt: string;
+  updatedAt: string;
+  upvotes: number;
+  downvotes: number;
+  isBlocked: boolean;
+  hasUpvoted: boolean;
+  hasDownvoted: boolean;
+  user: {
+    id: string;
+    displayName: string;
+    profileImageUrl: string | null;
+  };
 }
 
 export interface TrendingGame extends ShopAssets {

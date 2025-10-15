@@ -15,10 +15,15 @@ import {
   startMainLoop,
   Ludusavi,
   Lock,
+  DeckyPlugin,
+  ResourceCache,
 } from "@main/services";
 
 export const loadState = async () => {
   await Lock.acquireLock();
+
+  ResourceCache.initialize();
+  await ResourceCache.updateResourcesOnStartup();
 
   const userPreferences = await db.get<string, UserPreferences | null>(
     levelKeys.userPreferences,
@@ -43,6 +48,10 @@ export const loadState = async () => {
 
   Ludusavi.copyConfigFileToUserData();
   Ludusavi.copyBinaryToUserData();
+
+  if (process.platform === "linux") {
+    DeckyPlugin.checkAndUpdateIfOutdated();
+  }
 
   await HydraApi.setupApi().then(() => {
     uploadGamesBatch();

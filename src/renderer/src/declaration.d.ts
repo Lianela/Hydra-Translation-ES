@@ -1,8 +1,7 @@
-import type { AuthPage, CatalogueCategory } from "@shared";
+import type { AuthPage } from "@shared";
 import type {
   AppUpdaterEvent,
   GameShop,
-  HowLongToBeatCategory,
   Steam250Game,
   DownloadProgress,
   SeedingStatus,
@@ -10,37 +9,32 @@ import type {
   StartGameDownloadPayload,
   RealDebridUser,
   UserProfile,
-  FriendRequest,
   FriendRequestAction,
-  UserFriends,
-  UserBlocks,
   UpdateProfileRequest,
   GameStats,
-  TrendingGame,
-  UserStats,
   UserDetails,
   FriendRequestSync,
   GameArtifact,
   LudusaviBackup,
   UserAchievement,
   ComparedAchievements,
-  CatalogueSearchPayload,
   LibraryGame,
   GameRunning,
   TorBoxUser,
   Theme,
-  Badge,
   Auth,
   ShortcutLocation,
-  CatalogueSearchResult,
   ShopAssets,
   ShopDetailsWithAssets,
   AchievementCustomNotificationPosition,
   AchievementNotificationInfo,
-  UserLibraryResponse,
+  Game,
+  DiskUsage,
+  DownloadSource,
+  DownloadSourceValidationResult,
+  GameRepack,
 } from "@types";
 import type { AxiosProgressEvent } from "axios";
-import type disk from "diskusage";
 
 declare global {
   declare module "*.svg" {
@@ -70,36 +64,22 @@ declare global {
     ) => Promise<Record<string, boolean>>;
 
     /* Catalogue */
-    searchGames: (
-      payload: CatalogueSearchPayload,
-      take: number,
-      skip: number
-    ) => Promise<{ edges: CatalogueSearchResult[]; count: number }>;
-    getCatalogue: (category: CatalogueCategory) => Promise<ShopAssets[]>;
-    saveGameShopAssets: (
-      objectId: string,
-      shop: GameShop,
-      assets: ShopAssets
-    ) => Promise<void>;
     getGameShopDetails: (
       objectId: string,
       shop: GameShop,
       language: string
     ) => Promise<ShopDetailsWithAssets | null>;
     getRandomGame: () => Promise<Steam250Game>;
-    getHowLongToBeat: (
+    getGameStats: (objectId: string, shop: GameShop) => Promise<GameStats>;
+    getGameAssets: (
       objectId: string,
       shop: GameShop
-    ) => Promise<HowLongToBeatCategory[] | null>;
-    getGameStats: (objectId: string, shop: GameShop) => Promise<GameStats>;
-    getTrendingGames: () => Promise<TrendingGame[]>;
+    ) => Promise<ShopAssets | null>;
     onUpdateAchievements: (
       objectId: string,
       shop: GameShop,
       cb: (achievements: UserAchievement[]) => void
     ) => () => Electron.IpcRenderer;
-    getPublishers: () => Promise<string[]>;
-    getDevelopers: () => Promise<string[]>;
 
     /* Library */
     toggleAutomaticCloudSync: (
@@ -229,17 +209,24 @@ declare global {
     createSteamShortcut: (shop: GameShop, objectId: string) => Promise<void>;
 
     /* Download sources */
-    putDownloadSource: (
-      objectIds: string[]
-    ) => Promise<{ fingerprint: string }>;
-    createDownloadSources: (urls: string[]) => Promise<void>;
+    addDownloadSource: (url: string) => Promise<DownloadSource>;
+    updateMissingFingerprints: () => Promise<number>;
     removeDownloadSource: (url: string, removeAll?: boolean) => Promise<void>;
     getDownloadSources: () => Promise<
       Pick<DownloadSource, "url" | "createdAt" | "updatedAt">[]
     >;
+    deleteDownloadSource: (id: number) => Promise<void>;
+    deleteAllDownloadSources: () => Promise<void>;
+    validateDownloadSource: (
+      url: string
+    ) => Promise<DownloadSourceValidationResult>;
+    syncDownloadSources: () => Promise<number>;
+    getDownloadSourcesList: () => Promise<DownloadSource[]>;
+    checkDownloadSourceExists: (url: string) => Promise<boolean>;
+    getAllRepacks: () => Promise<GameRepack[]>;
 
     /* Hardware */
-    getDiskFreeSpace: (path: string) => Promise<disk.DiskUsage>;
+    getDiskFreeSpace: (path: string) => Promise<DiskUsage>;
     checkFolderWritePermission: (path: string) => Promise<boolean>;
 
     /* Cloud save */
@@ -247,14 +234,6 @@ declare global {
       objectId: string,
       shop: GameShop,
       downloadOptionTitle: string | null
-    ) => Promise<void>;
-    toggleArtifactFreeze: (
-      gameArtifactId: string,
-      freeze: boolean
-    ) => Promise<void>;
-    renameGameArtifact: (
-      gameArtifactId: string,
-      label: string
     ) => Promise<void>;
     downloadGameArtifact: (
       objectId: string,
@@ -269,7 +248,6 @@ declare global {
       objectId: string,
       shop: GameShop
     ) => Promise<LudusaviBackup | null>;
-    deleteGameArtifact: (gameArtifactId: string) => Promise<{ ok: boolean }>;
     selectGameBackupPath: (
       shop: GameShop,
       objectId: string,
@@ -303,10 +281,65 @@ declare global {
       options: Electron.OpenDialogOptions
     ) => Promise<Electron.OpenDialogReturnValue>;
     showItemInFolder: (path: string) => Promise<void>;
-    getFeatures: () => Promise<string[]>;
-    getBadges: () => Promise<Badge[]>;
+    hydraApi: {
+      get: <T = unknown>(
+        url: string,
+        options?: {
+          params?: unknown;
+          needsAuth?: boolean;
+          needsSubscription?: boolean;
+          ifModifiedSince?: Date;
+        }
+      ) => Promise<T>;
+      post: <T = unknown>(
+        url: string,
+        options?: {
+          data?: unknown;
+          needsAuth?: boolean;
+          needsSubscription?: boolean;
+        }
+      ) => Promise<T>;
+      put: <T = unknown>(
+        url: string,
+        options?: {
+          data?: unknown;
+          needsAuth?: boolean;
+          needsSubscription?: boolean;
+        }
+      ) => Promise<T>;
+      patch: <T = unknown>(
+        url: string,
+        options?: {
+          data?: unknown;
+          needsAuth?: boolean;
+          needsSubscription?: boolean;
+        }
+      ) => Promise<T>;
+      delete: <T = unknown>(
+        url: string,
+        options?: {
+          needsAuth?: boolean;
+          needsSubscription?: boolean;
+        }
+      ) => Promise<T>;
+    };
     canInstallCommonRedist: () => Promise<boolean>;
     installCommonRedist: () => Promise<void>;
+    installHydraDeckyPlugin: () => Promise<{
+      success: boolean;
+      path: string;
+      currentVersion: string | null;
+      expectedVersion: string;
+      error?: string;
+    }>;
+    getHydraDeckyPluginInfo: () => Promise<{
+      installed: boolean;
+      version: string | null;
+      path: string;
+      outdated: boolean;
+      expectedVersion: string | null;
+    }>;
+    checkHomebrewFolderExists: () => Promise<boolean>;
     onCommonRedistProgress: (
       cb: (value: { log: string; complete: boolean }) => void
     ) => () => Electron.IpcRenderer;
@@ -331,27 +364,6 @@ declare global {
     onSignOut: (cb: () => void) => () => Electron.IpcRenderer;
 
     /* User */
-    getUser: (userId: string) => Promise<UserProfile | null>;
-    getUserLibrary: (
-      userId: string,
-      take?: number,
-      skip?: number,
-      sortBy?: string
-    ) => Promise<UserLibraryResponse>;
-    blockUser: (userId: string) => Promise<void>;
-    unblockUser: (userId: string) => Promise<void>;
-    getUserFriends: (
-      userId: string,
-      take: number,
-      skip: number
-    ) => Promise<UserFriends>;
-    getBlockedUsers: (take: number, skip: number) => Promise<UserBlocks>;
-    getUserStats: (userId: string) => Promise<UserStats>;
-    reportUser: (
-      userId: string,
-      reason: string,
-      description: string
-    ) => Promise<void>;
     getComparedUnlockedAchievements: (
       objectId: string,
       shop: GameShop,
@@ -364,7 +376,6 @@ declare global {
 
     /* Profile */
     getMe: () => Promise<UserDetails | null>;
-    undoFriendship: (userId: string) => Promise<void>;
     updateProfile: (
       updateProfile: UpdateProfileRequest
     ) => Promise<UserProfile>;
@@ -372,7 +383,6 @@ declare global {
     processProfileImage: (
       path: string
     ) => Promise<{ imagePath: string; mimeType: string }>;
-    getFriendRequests: () => Promise<FriendRequest[]>;
     syncFriendRequests: () => Promise<void>;
     onSyncFriendRequests: (
       cb: (friendRequests: FriendRequestSync) => void
@@ -381,7 +391,6 @@ declare global {
       userId: string,
       action: FriendRequestAction
     ) => Promise<void>;
-    sendFriendRequest: (userId: string) => Promise<void>;
 
     /* Notifications */
     publishNewRepacksNotification: (newRepacksCount: number) => Promise<void>;

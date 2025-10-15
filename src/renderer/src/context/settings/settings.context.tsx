@@ -63,6 +63,7 @@ export function SettingsContextProvider({
 
   const [searchParams] = useSearchParams();
   const defaultSourceUrl = searchParams.get("urls");
+  const defaultTab = searchParams.get("tab");
   const defaultAppearanceTheme = searchParams.get("theme");
   const defaultAppearanceAuthorId = searchParams.get("authorId");
   const defaultAppearanceAuthorName = searchParams.get("authorName");
@@ -76,6 +77,13 @@ export function SettingsContextProvider({
       setSourceUrl(defaultSourceUrl);
     }
   }, [defaultSourceUrl]);
+
+  useEffect(() => {
+    if (defaultTab) {
+      const idx = Number(defaultTab);
+      if (!Number.isNaN(idx)) setCurrentCategoryIndex(idx);
+    }
+  }, [defaultTab]);
 
   useEffect(() => {
     if (appearance.theme) setCurrentCategoryIndex(3);
@@ -108,7 +116,13 @@ export function SettingsContextProvider({
   }, []);
 
   const fetchBlockedUsers = useCallback(async () => {
-    const blockedUsers = await window.electron.getBlockedUsers(12, 0);
+    const blockedUsers = await window.electron.hydraApi
+      .get<UserBlocks>("/profile/blocks", {
+        params: { take: 12, skip: 0 },
+      })
+      .catch(() => {
+        return { blocks: [] };
+      });
     setBlockedUsers(blockedUsers.blocks);
   }, []);
 

@@ -1,6 +1,6 @@
 import { registerEvent } from "../register-event";
 import { gamesSublevel, gamesShopAssetsSublevel, levelKeys } from "@main/level";
-import { randomUUID } from "crypto";
+import { randomUUID } from "node:crypto";
 import type { GameShop } from "@types";
 
 const addCustomGameToLibrary = async (
@@ -27,6 +27,7 @@ const addCustomGameToLibrary = async (
   }
 
   const assets = {
+    updatedAt: Date.now(),
     objectId,
     shop,
     title,

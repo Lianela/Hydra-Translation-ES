@@ -10,6 +10,7 @@ import { ReportProfile } from "../report-profile/report-profile";
 import { FriendsBox } from "./friends-box";
 import { RecentGamesBox } from "./recent-games-box";
 import { UserStatsBox } from "./user-stats-box";
+import { UserKarmaBox } from "./user-karma-box";
 import { UserLibraryGameCard } from "./user-library-game-card";
 import { SortOptions } from "./sort-options";
 import { useSectionCollapse } from "@renderer/hooks/use-section-collapse";
@@ -177,6 +178,7 @@ export function ProfileContent() {
                                 statIndex={statsIndex}
                                 onMouseEnter={handleOnMouseEnterGameCard}
                                 onMouseLeave={handleOnMouseLeaveGameCard}
+                                sortBy={sortBy}
                               />
                             </li>
                           ))}
@@ -208,6 +210,7 @@ export function ProfileContent() {
                           statIndex={statsIndex}
                           onMouseEnter={handleOnMouseEnterGameCard}
                           onMouseLeave={handleOnMouseLeaveGameCard}
+                          sortBy={sortBy}
                         />
                       </li>
                     ))}
@@ -221,6 +224,7 @@ export function ProfileContent() {
         {shouldShowRightContent && (
           <div className="profile-content__right-content">
             <UserStatsBox />
+            <UserKarmaBox />
             <RecentGamesBox />
             <FriendsBox />
             <ReportProfile />

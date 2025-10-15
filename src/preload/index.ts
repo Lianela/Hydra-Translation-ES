@@ -11,17 +11,15 @@ import type {
   GameRunning,
   FriendRequestAction,
   UpdateProfileRequest,
-  CatalogueSearchPayload,
   SeedingStatus,
   GameAchievement,
   Theme,
   FriendRequestSync,
   ShortcutLocation,
-  ShopAssets,
   AchievementCustomNotificationPosition,
   AchievementNotificationInfo,
 } from "@types";
-import type { AuthPage, CatalogueCategory } from "@shared";
+import type { AuthPage } from "@shared";
 import type { AxiosProgressEvent } from "axios";
 
 contextBridge.exposeInMainWorld("electron", {
@@ -63,20 +61,13 @@ contextBridge.exposeInMainWorld("electron", {
     ipcRenderer.invoke("checkDebridAvailability", magnets),
 
   /* Catalogue */
-  searchGames: (payload: CatalogueSearchPayload, take: number, skip: number) =>
-    ipcRenderer.invoke("searchGames", payload, take, skip),
-  getCatalogue: (category: CatalogueCategory) =>
-    ipcRenderer.invoke("getCatalogue", category),
-  saveGameShopAssets: (objectId: string, shop: GameShop, assets: ShopAssets) =>
-    ipcRenderer.invoke("saveGameShopAssets", objectId, shop, assets),
   getGameShopDetails: (objectId: string, shop: GameShop, language: string) =>
     ipcRenderer.invoke("getGameShopDetails", objectId, shop, language),
   getRandomGame: () => ipcRenderer.invoke("getRandomGame"),
-  getHowLongToBeat: (objectId: string, shop: GameShop) =>
-    ipcRenderer.invoke("getHowLongToBeat", objectId, shop),
   getGameStats: (objectId: string, shop: GameShop) =>
     ipcRenderer.invoke("getGameStats", objectId, shop),
-  getTrendingGames: () => ipcRenderer.invoke("getTrendingGames"),
+  getGameAssets: (objectId: string, shop: GameShop) =>
+    ipcRenderer.invoke("getGameAssets", objectId, shop),
   onUpdateAchievements: (
     objectId: string,
     shop: GameShop,
@@ -106,13 +97,24 @@ contextBridge.exposeInMainWorld("electron", {
     ipcRenderer.invoke("authenticateTorBox", apiToken),
 
   /* Download sources */
-  putDownloadSource: (objectIds: string[]) =>
-    ipcRenderer.invoke("putDownloadSource", objectIds),
-  createDownloadSources: (urls: string[]) =>
-    ipcRenderer.invoke("createDownloadSources", urls),
+  addDownloadSource: (url: string) =>
+    ipcRenderer.invoke("addDownloadSource", url),
+  updateMissingFingerprints: () =>
+    ipcRenderer.invoke("updateMissingFingerprints"),
   removeDownloadSource: (url: string, removeAll?: boolean) =>
     ipcRenderer.invoke("removeDownloadSource", url, removeAll),
   getDownloadSources: () => ipcRenderer.invoke("getDownloadSources"),
+  deleteDownloadSource: (id: number) =>
+    ipcRenderer.invoke("deleteDownloadSource", id),
+  deleteAllDownloadSources: () =>
+    ipcRenderer.invoke("deleteAllDownloadSources"),
+  validateDownloadSource: (url: string) =>
+    ipcRenderer.invoke("validateDownloadSource", url),
+  syncDownloadSources: () => ipcRenderer.invoke("syncDownloadSources"),
+  getDownloadSourcesList: () => ipcRenderer.invoke("getDownloadSourcesList"),
+  checkDownloadSourceExists: (url: string) =>
+    ipcRenderer.invoke("checkDownloadSourceExists", url),
+  getAllRepacks: () => ipcRenderer.invoke("getAllRepacks"),
 
   /* Library */
   toggleAutomaticCloudSync: (
@@ -284,10 +286,6 @@ contextBridge.exposeInMainWorld("electron", {
     downloadOptionTitle: string | null
   ) =>
     ipcRenderer.invoke("uploadSaveGame", objectId, shop, downloadOptionTitle),
-  toggleArtifactFreeze: (gameArtifactId: string, freeze: boolean) =>
-    ipcRenderer.invoke("toggleArtifactFreeze", gameArtifactId, freeze),
-  renameGameArtifact: (gameArtifactId: string, label: string) =>
-    ipcRenderer.invoke("renameGameArtifact", gameArtifactId, label),
   downloadGameArtifact: (
     objectId: string,
     shop: GameShop,
@@ -298,8 +296,6 @@ contextBridge.exposeInMainWorld("electron", {
     ipcRenderer.invoke("getGameArtifacts", objectId, shop),
   getGameBackupPreview: (objectId: string, shop: GameShop) =>
     ipcRenderer.invoke("getGameBackupPreview", objectId, shop),
-  deleteGameArtifact: (gameArtifactId: string) =>
-    ipcRenderer.invoke("deleteGameArtifact", gameArtifactId),
   selectGameBackupPath: (
     shop: GameShop,
     objectId: string,
@@ -356,10 +352,99 @@ contextBridge.exposeInMainWorld("electron", {
     ipcRenderer.invoke("showOpenDialog", options),
   showItemInFolder: (path: string) =>
     ipcRenderer.invoke("showItemInFolder", path),
-  getFeatures: () => ipcRenderer.invoke("getFeatures"),
-  getBadges: () => ipcRenderer.invoke("getBadges"),
+  hydraApi: {
+    get: (
+      url: string,
+      options?: {
+        params?: unknown;
+        needsAuth?: boolean;
+        needsSubscription?: boolean;
+        ifModifiedSince?: Date;
+      }
+    ) =>
+      ipcRenderer.invoke("hydraApiCall", {
+        method: "get",
+        url,
+        params: options?.params,
+        options: {
+          needsAuth: options?.needsAuth,
+          needsSubscription: options?.needsSubscription,
+          ifModifiedSince: options?.ifModifiedSince,
+        },
+      }),
+    post: (
+      url: string,
+      options?: {
+        data?: unknown;
+        needsAuth?: boolean;
+        needsSubscription?: boolean;
+      }
+    ) =>
+      ipcRenderer.invoke("hydraApiCall", {
+        method: "post",
+        url,
+        data: options?.data,
+        options: {
+          needsAuth: options?.needsAuth,
+          needsSubscription: options?.needsSubscription,
+        },
+      }),
+    put: (
+      url: string,
+      options?: {
+        data?: unknown;
+        needsAuth?: boolean;
+        needsSubscription?: boolean;
+      }
+    ) =>
+      ipcRenderer.invoke("hydraApiCall", {
+        method: "put",
+        url,
+        data: options?.data,
+        options: {
+          needsAuth: options?.needsAuth,
+          needsSubscription: options?.needsSubscription,
+        },
+      }),
+    patch: (
+      url: string,
+      options?: {
+        data?: unknown;
+        needsAuth?: boolean;
+        needsSubscription?: boolean;
+      }
+    ) =>
+      ipcRenderer.invoke("hydraApiCall", {
+        method: "patch",
+        url,
+        data: options?.data,
+        options: {
+          needsAuth: options?.needsAuth,
+          needsSubscription: options?.needsSubscription,
+        },
+      }),
+    delete: (
+      url: string,
+      options?: {
+        needsAuth?: boolean;
+        needsSubscription?: boolean;
+      }
+    ) =>
+      ipcRenderer.invoke("hydraApiCall", {
+        method: "delete",
+        url,
+        options: {
+          needsAuth: options?.needsAuth,
+          needsSubscription: options?.needsSubscription,
+        },
+      }),
+  },
   canInstallCommonRedist: () => ipcRenderer.invoke("canInstallCommonRedist"),
   installCommonRedist: () => ipcRenderer.invoke("installCommonRedist"),
+  installHydraDeckyPlugin: () => ipcRenderer.invoke("installHydraDeckyPlugin"),
+  getHydraDeckyPluginInfo: () => ipcRenderer.invoke("getHydraDeckyPluginInfo"),
+  checkHomebrewFolderExists: () =>
+    ipcRenderer.invoke("checkHomebrewFolderExists"),
   platform: process.platform,
 
   /* Auto update */
@@ -390,13 +475,10 @@ contextBridge.exposeInMainWorld("electron", {
 
   /* Profile */
   getMe: () => ipcRenderer.invoke("getMe"),
-  undoFriendship: (userId: string) =>
-    ipcRenderer.invoke("undoFriendship", userId),
   updateProfile: (updateProfile: UpdateProfileRequest) =>
     ipcRenderer.invoke("updateProfile", updateProfile),
   processProfileImage: (imagePath: string) =>
     ipcRenderer.invoke("processProfileImage", imagePath),
-  getFriendRequests: () => ipcRenderer.invoke("getFriendRequests"),
   syncFriendRequests: () => ipcRenderer.invoke("syncFriendRequests"),
   onSyncFriendRequests: (cb: (friendRequests: FriendRequestSync) => void) => {
     const listener = (
@@ -409,26 +491,8 @@ contextBridge.exposeInMainWorld("electron", {
   },
   updateFriendRequest: (userId: string, action: FriendRequestAction) =>
     ipcRenderer.invoke("updateFriendRequest", userId, action),
-  sendFriendRequest: (userId: string) =>
-    ipcRenderer.invoke("sendFriendRequest", userId),
 
   /* User */
-  getUser: (userId: string) => ipcRenderer.invoke("getUser", userId),
-  getUserLibrary: (
-    userId: string,
-    take?: number,
-    skip?: number,
-    sortBy?: string
-  ) => ipcRenderer.invoke("getUserLibrary", userId, take, skip, sortBy),
-  blockUser: (userId: string) => ipcRenderer.invoke("blockUser", userId),
-  unblockUser: (userId: string) => ipcRenderer.invoke("unblockUser", userId),
-  getUserFriends: (userId: string, take: number, skip: number) =>
-    ipcRenderer.invoke("getUserFriends", userId, take, skip),
-  getBlockedUsers: (take: number, skip: number) =>
-    ipcRenderer.invoke("getBlockedUsers", take, skip),
-  getUserStats: (userId: string) => ipcRenderer.invoke("getUserStats", userId),
-  reportUser: (userId: string, reason: string, description: string) =>
-    ipcRenderer.invoke("reportUser", userId, reason, description),
   getComparedUnlockedAchievements: (
     objectId: string,
     shop: GameShop,

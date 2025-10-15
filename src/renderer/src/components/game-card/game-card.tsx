@@ -7,6 +7,7 @@ import "./game-card.scss";
 
 import { useTranslation } from "react-i18next";
 import { Badge } from "../badge/badge";
+import { StarRating } from "../star-rating/star-rating";
 import { useCallback, useState, useMemo } from "react";
 import { useFormat, useRepacks } from "@renderer/hooks";
 
@@ -106,6 +107,9 @@ export function GameCard({ game, ...props }: GameCardProps) {
               <span>
                 {stats ? numberFormatter.format(stats.playerCount) : "…"}
               </span>
+            </div>
+            <div className="game-card__specifics-item">
+              <StarRating rating={stats?.averageScore || null} size={14} />
             </div>
           </div>
         </div>

@@ -40,6 +40,7 @@ export class DownloadManager {
           })
         : undefined,
       downloadsToSeed?.map((download) => ({
+        action: "seed",
         game_id: levelKeys.game(download.shop, download.objectId),
         url: download.uri,
         save_path: download.downloadPath,
